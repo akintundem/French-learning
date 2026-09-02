@@ -5,6 +5,9 @@
 export type Status = "correct" | "accent" | "wrong";
 export type ErrorKind = "accent" | "article" | "unknown" | "skipped";
 
+/** Scope used by /api/health; excluded from every statistic. */
+export const HEALTHCHECK_SCOPE = "__healthcheck";
+
 export type NewSession = {
   kind: "vocab" | "numbers";
   scope: string;
@@ -84,6 +87,8 @@ export interface Store {
   recordAttempts(as: NewAttempt[]): Promise<void>;
   dashboard(opts?: { days?: number }): Promise<Dashboard>;
   reset(): Promise<void>;
+  /** Removes a single session and its attempts — used by the health check. */
+  deleteSession(id: string): Promise<void>;
 }
 
 /**

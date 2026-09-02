@@ -200,6 +200,47 @@ describe("activity", () => {
   });
 });
 
+describe("health-check probe rows", () => {
+  it("never appear in any statistic", async () => {
+    const real = await store.startSession({ kind: "vocab", scope: "A3", direction: "en-fr" });
+    await store.recordAttempt(attempt({ sessionId: real }));
+
+    // A probe, as written by /api/health.
+    const probe = await store.startSession({
+      kind: "vocab", scope: "__healthcheck", direction: "en-fr",
+    });
+    await store.recordAttempts([
+      attempt({ sessionId: probe, scope: "__healthcheck", wordKey: "__healthcheck" }),
+      attempt({
+        sessionId: probe, scope: "__healthcheck", wordKey: "__healthcheck",
+        status: "wrong", errorKind: "unknown", given: "x",
+      }),
+    ]);
+
+    const d = await store.dashboard();
+    expect(d.totals.attempts).toBe(1);          // not 3
+    expect(d.totals.sessions).toBe(1);          // not 2
+    expect(d.totals.wordsSeen).toBe(1);
+    expect(d.byScope.map((r) => r.scope)).toEqual(["A3"]);
+    expect(d.errors).toEqual({ accent: 0, article: 0, unknown: 0, skipped: 0 });
+    expect(d.activity[0]?.attempts).toBe(1);
+  });
+
+  it("deleteSession removes the probe and its attempts", async () => {
+    const id = await store.startSession({
+      kind: "vocab", scope: "__healthcheck", direction: "en-fr",
+    });
+    await store.recordAttempt(attempt({ sessionId: id, scope: "__healthcheck" }));
+
+    await store.deleteSession(id);
+
+    // Attempts cascade with the session.
+    const d = await store.dashboard();
+    expect(d.totals.attempts).toBe(0);
+    expect(d.totals.sessions).toBe(0);
+  });
+});
+
 describe("reset", () => {
   it("clears everything", async () => {
     const s = await store.startSession({ kind: "vocab", scope: "A3", direction: "en-fr" });

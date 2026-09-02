@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore, storeKind } from "@/lib/db";
 import { findSupabaseCredentials, supabaseVarNames } from "@/lib/db/env";
+import { HEALTHCHECK_SCOPE } from "@/lib/db/types";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,7 @@ export async function GET() {
   try {
     sessionId = await getStore().startSession({
       kind: "vocab",
-      scope: "__healthcheck",
+      scope: HEALTHCHECK_SCOPE,
       direction: "en-fr",
     });
     checks.push({ step: "Write a session", ok: true });
@@ -48,8 +49,8 @@ export async function GET() {
       await getStore().recordAttempt({
         sessionId,
         kind: "vocab",
-        scope: "__healthcheck",
-        wordKey: "__healthcheck",
+        scope: HEALTHCHECK_SCOPE,
+        wordKey: HEALTHCHECK_SCOPE,
         direction: "en-fr",
         prompt: "health",
         expected: "health",
@@ -69,10 +70,25 @@ export async function GET() {
     checks.push({
       step: "Read the dashboard",
       ok: true,
-      detail: `${d.totals.attempts} attempts recorded in total`,
+      detail: `${d.totals.attempts} real attempts recorded (this check's own rows excluded)`,
     });
   } catch (e) {
     checks.push({ step: "Read the dashboard", ok: false, detail: msg(e) });
+  }
+
+  // Remove the probe rows. Without this, every visit to this endpoint would
+  // add a fake answer to the statistics it exists to verify.
+  if (sessionId) {
+    try {
+      await getStore().deleteSession(sessionId);
+      checks.push({ step: "Clean up", ok: true });
+    } catch (e) {
+      checks.push({
+        step: "Clean up",
+        ok: false,
+        detail: `${msg(e)} — a __healthcheck session may be left behind`,
+      });
+    }
   }
 
   const ok = checks.every((c) => c.ok);

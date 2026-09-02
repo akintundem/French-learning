@@ -151,6 +151,12 @@ export class SupabaseStore implements Store {
     };
   }
 
+  async deleteSession(id: string): Promise<void> {
+    // attempts cascade from the session's foreign key.
+    const { error } = await this.db.from("sessions").delete().eq("id", id);
+    if (error) throw new Error(`deleteSession: ${error.message}`);
+  }
+
   async reset(): Promise<void> {
     // Attempts cascade from sessions, but both are cleared explicitly so a
     // stray attempt without a session cannot survive.

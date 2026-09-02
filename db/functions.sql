@@ -4,6 +4,9 @@
 -- and running this file on its own fails with
 -- `relation "attempts" does not exist`.
 --
+-- Rows written by /api/health carry scope '__healthcheck' and are excluded
+-- everywhere below, so a probe can never show up as practice.
+--
 -- Each is SECURITY DEFINER so it can read past Row Level Security. That is
 -- safe here because every function only ever returns aggregates — counts and
 -- rates — never raw rows, and none takes a parameter that reaches a WHERE
@@ -24,18 +27,18 @@ language sql stable security definer set search_path = public as $$
       count(*) filter (where status = 'correct') as n_correct,
       (array_agg(status order by asked_at desc, id desc))[1:2] as last_two
     from attempts
-    where kind = 'vocab'
+    where kind = 'vocab' and scope <> '__healthcheck'
     group by word_key
   )
   select
-    (select count(*) from attempts),
-    (select count(*) from attempts where status = 'correct'),
-    (select count(distinct word_key) from attempts),
+    (select count(*) from attempts where scope <> '__healthcheck'),
+    (select count(*) from attempts where status = 'correct' and scope <> '__healthcheck'),
+    (select count(distinct word_key) from attempts where scope <> '__healthcheck'),
     (select count(*) from per_word
       where n_correct >= 3
         and array_length(last_two, 1) = 2
         and last_two[1] = 'correct' and last_two[2] = 'correct'),
-    (select count(*) from sessions);
+    (select count(*) from sessions where scope <> '__healthcheck');
 $$;
 
 create or replace function dashboard_by_scope()
@@ -50,7 +53,7 @@ language sql stable security definer set search_path = public as $$
       count(*) filter (where status = 'correct') as n_correct,
       (array_agg(status order by asked_at desc, id desc))[1:2] as last_two
     from attempts
-    where kind = 'vocab'
+    where kind = 'vocab' and scope <> '__healthcheck'
     group by scope, word_key
   ),
   mastered as (
@@ -68,7 +71,7 @@ language sql stable security definer set search_path = public as $$
     coalesce(m.n, 0)
   from attempts a
   left join mastered m on m.scope = a.scope
-  where a.kind = 'vocab'
+  where a.kind = 'vocab' and a.scope <> '__healthcheck'
   group by a.scope, m.n
   order by a.scope;
 $$;
@@ -86,7 +89,7 @@ language sql stable security definer set search_path = public as $$
       count(*) filter (where status = 'correct') as n_correct,
       max(asked_at) as last_seen
     from attempts
-    where kind = 'vocab'
+    where kind = 'vocab' and scope <> '__healthcheck'
     group by word_key
     having count(*) >= 2 and count(*) filter (where status = 'correct') < count(*)
   )
@@ -110,7 +113,7 @@ returns table (error_kind text, n bigint)
 language sql stable security definer set search_path = public as $$
   select coalesce(error_kind, 'unknown'), count(*)
   from attempts
-  where status <> 'correct'
+  where status <> 'correct' and scope <> '__healthcheck'
   group by 1;
 $$;
 
@@ -122,6 +125,7 @@ language sql stable security definer set search_path = public as $$
     count(*),
     count(*) filter (where status = 'correct')
   from attempts
+  where scope <> '__healthcheck'
   group by 1
   order by 1 desc
   limit days;

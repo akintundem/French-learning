@@ -9,7 +9,9 @@ import {
   type Store, type Totals, type WordStat,
 } from "./types";
 
-const USER = "local"; // single-user locally; Supabase uses auth.uid()
+const USER = "local"; // single-user locally
+// Probe rows written by /api/health, excluded from every statistic.
+const PROBE = "__healthcheck";
 
 export class SqliteStore implements Store {
   private db: Database.Database;
@@ -93,13 +95,13 @@ export class SqliteStore implements Store {
         `SELECT COUNT(*) AS attempts,
                 SUM(CASE WHEN status = 'correct' THEN 1 ELSE 0 END) AS correct,
                 COUNT(DISTINCT word_key) AS words_seen
-         FROM attempts WHERE user_id = ?`
+         FROM attempts WHERE user_id = ? AND scope <> ?`
       )
-      .get(USER) as { attempts: number; correct: number | null; words_seen: number };
+      .get(USER, PROBE) as { attempts: number; correct: number | null; words_seen: number };
 
     const sessions = this.db
-      .prepare(`SELECT COUNT(*) AS n FROM sessions WHERE user_id = ?`)
-      .get(USER) as { n: number };
+      .prepare(`SELECT COUNT(*) AS n FROM sessions WHERE user_id = ? AND scope <> ?`)
+      .get(USER, PROBE) as { n: number };
 
     const correct = row.correct ?? 0;
     return {
@@ -120,10 +122,10 @@ export class SqliteStore implements Store {
     const rows = this.db
       .prepare(
         `SELECT word_key, status, asked_at, rowid
-         FROM attempts WHERE user_id = ? AND kind = 'vocab'
+         FROM attempts WHERE user_id = ? AND kind = 'vocab' AND scope <> ?
          ORDER BY word_key, asked_at, rowid`
       )
-      .all(USER) as { word_key: string; status: Status }[];
+      .all(USER, PROBE) as { word_key: string; status: Status }[];
 
     const byWord = new Map<string, Status[]>();
     for (const r of rows) {
@@ -146,11 +148,11 @@ export class SqliteStore implements Store {
                 SUM(CASE WHEN status = 'correct' THEN 1 ELSE 0 END) AS correct,
                 COUNT(DISTINCT word_key) AS words_seen
          FROM attempts
-         WHERE user_id = ? AND kind = 'vocab'
+         WHERE user_id = ? AND kind = 'vocab' AND scope <> ?
          GROUP BY scope
          ORDER BY scope`
       )
-      .all(USER) as {
+      .all(USER, PROBE) as {
         scope: string; attempts: number; correct: number; words_seen: number;
       }[];
 
@@ -170,10 +172,10 @@ export class SqliteStore implements Store {
     const rows = this.db
       .prepare(
         `SELECT scope, word_key, status
-         FROM attempts WHERE user_id = ? AND kind = 'vocab'
+         FROM attempts WHERE user_id = ? AND kind = 'vocab' AND scope <> ?
          ORDER BY word_key, asked_at, rowid`
       )
-      .all(USER) as { scope: string; word_key: string; status: Status }[];
+      .all(USER, PROBE) as { scope: string; word_key: string; status: Status }[];
 
     const byWord = new Map<string, { scope: string; statuses: Status[] }>();
     for (const r of rows) {
@@ -197,13 +199,13 @@ export class SqliteStore implements Store {
                 SUM(CASE WHEN status = 'correct' THEN 1 ELSE 0 END) AS correct,
                 MAX(asked_at) AS last_seen
          FROM attempts
-         WHERE user_id = ? AND kind = 'vocab'
+         WHERE user_id = ? AND kind = 'vocab' AND scope <> ?
          GROUP BY word_key
          HAVING attempts >= 2 AND correct < attempts
          ORDER BY (CAST(correct AS REAL) / attempts) ASC, attempts DESC
          LIMIT ?`
       )
-      .all(USER, limit) as {
+      .all(USER, PROBE, limit) as {
         word_key: string; attempts: number; correct: number; last_seen: string;
       }[];
 
@@ -237,10 +239,10 @@ export class SqliteStore implements Store {
       .prepare(
         `SELECT error_kind, COUNT(*) AS n
          FROM attempts
-         WHERE user_id = ? AND status != 'correct'
+         WHERE user_id = ? AND status != 'correct' AND scope <> ?
          GROUP BY error_kind`
       )
-      .all(USER) as { error_kind: string | null; n: number }[];
+      .all(USER, PROBE) as { error_kind: string | null; n: number }[];
 
     const out: ErrorBreakdown = { accent: 0, article: 0, unknown: 0, skipped: 0 };
     for (const r of rows) {
@@ -258,12 +260,12 @@ export class SqliteStore implements Store {
                 COUNT(*) AS attempts,
                 SUM(CASE WHEN status = 'correct' THEN 1 ELSE 0 END) AS correct
          FROM attempts
-         WHERE user_id = ?
+         WHERE user_id = ? AND scope <> ?
          GROUP BY day
          ORDER BY day DESC
          LIMIT ?`
       )
-      .all(USER, days) as DayActivity[];
+      .all(USER, PROBE, days) as DayActivity[];
     return rows.reverse();
   }
 
@@ -272,10 +274,10 @@ export class SqliteStore implements Store {
     const days = this.db
       .prepare(
         `SELECT DISTINCT substr(asked_at, 1, 10) AS day
-         FROM attempts WHERE user_id = ?
+         FROM attempts WHERE user_id = ? AND scope <> ?
          ORDER BY day DESC`
       )
-      .all(USER) as { day: string }[];
+      .all(USER, PROBE) as { day: string }[];
     if (!days.length) return 0;
 
     const iso = (d: Date) => d.toISOString().slice(0, 10);
@@ -294,6 +296,11 @@ export class SqliteStore implements Store {
       else break;
     }
     return streak;
+  }
+
+  async deleteSession(id: string): Promise<void> {
+    // Attempts cascade via the foreign key.
+    this.db.prepare(`DELETE FROM sessions WHERE id = ? AND user_id = ?`).run(id, USER);
   }
 
   async reset(): Promise<void> {
