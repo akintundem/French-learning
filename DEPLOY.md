@@ -50,16 +50,19 @@ If both are present, the canonical `NEXT_PUBLIC_SUPABASE_URL` wins.
 The Progress page's *Technical detail* section lists which variables it can see
 and which two it is reading from — names only, never values.
 
-### About the service-role key
+### The service-role key is required
 
-The code also reads `SUPABASE_SERVICE_ROLE_KEY` and prefers it if present.
-**Only set it if you understand what it does:** it bypasses Row Level Security
-entirely. It is useful for a single-user deployment with no sign-in, where
-there is no `auth.uid()` to scope rows by — but it must never be exposed to the
-browser, so keep the `NEXT_PUBLIC_` prefix off it.
+`SUPABASE_SERVICE_ROLE_KEY` is **not optional for this app.** There is no
+sign-in, so there is no `auth.uid()` to scope rows by. The schema keeps Row
+Level Security on with no anon policy — meaning the public key in the browser
+can read nothing — and the server writes with the service-role key, which
+bypasses RLS by design.
 
-If you add authentication later, drop the service-role key and let the anon key
-plus RLS do the work.
+Without it, writes are rejected and the dashboard stays empty forever.
+
+Copy it from Supabase → Settings → API → `service_role`, and add it in Vercel
+as `SUPABASE_SERVICE_ROLE_KEY`. **Never give it a `NEXT_PUBLIC_` prefix** —
+that would ship it to the browser and hand anyone full access to the database.
 
 ## 3. Deploy
 
@@ -69,17 +72,28 @@ never bundled into a serverless function.
 
 ## 4. Check it worked
 
-Answer a couple of questions on the deployed site, then open `/dashboard`. If
-numbers appear, the whole path is working.
+Open **`/api/health`** on the deployed site. It writes a row, reads it back,
+and names whatever fails:
 
-If it stays empty, the usual causes are:
+```json
+{ "ok": true, "backend": "supabase", "checks": [ ... ] }
+```
 
-| Symptom | Cause |
-|---------|-------|
-| Dashboard empty, no errors | Env vars not applied — redeploy after adding them |
-| `relation "attempts" does not exist` | Step 1 not run |
+Every check must pass. `"backend": "sqlite"` in production means the
+credentials were not found — on Vercel that is an empty database on every
+request.
+
+| What `/api/health` says | Fix |
+|---|---|
+| `no Supabase URL + key pair found` | Variables missing or not applied — add them and **redeploy** |
+| `relation "attempts" does not exist` | Step 1 not run — run `db/postgres.sql` |
 | `function dashboard_totals does not exist` | `db/functions.sql` not run |
-| Rows written but dashboard empty | RLS on with no `auth.uid()` — see the service-role note above |
+| `wrote 0 of 1 rows` | Using the anon key — set `SUPABASE_SERVICE_ROLE_KEY` |
+| `"backend": "sqlite"` in production | Same as the first row |
+
+> **A dashboard that says "Answer some questions…" is ambiguous:** it looks the
+> same whether you have not practised yet or every write is being rejected.
+> `/api/health` is what tells the two apart.
 
 ## What changes between local and production
 

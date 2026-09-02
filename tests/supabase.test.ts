@@ -3,6 +3,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 // A minimal fake of the supabase-js surface this store actually uses.
 type Row = Record<string, unknown>;
 const state = {
+  /** Overrides what an insert returns, to simulate an RLS rejection. */
+  insertReturns: null as Row[] | null,
   inserted: [] as { table: string; rows: Row[] }[],
   updated: [] as { table: string; patch: Row; id: string }[],
   deleted: [] as string[],
@@ -18,9 +20,16 @@ vi.mock("@supabase/supabase-js", () => ({
           const list = Array.isArray(rows) ? rows : [rows];
           state.inserted.push({ table, rows: list });
           return {
-            select: () => ({
-              single: async () => ({ data: { id: "new-session-id" }, error: null }),
-            }),
+            select: (cols?: string) => {
+              // sessions insert uses .select("id").single(); attempts uses
+              // .select("id") and awaits the array.
+              const rows = state.insertReturns ?? list.map((_, i) => ({ id: `row-${i}` }));
+              const result = { data: rows, error: null };
+              return Object.assign(Promise.resolve(result), {
+                single: async () => ({ data: { id: "new-session-id" }, error: null }),
+                _cols: cols,
+              });
+            },
             then: (r: (v: { error: null }) => void) => r({ error: null }),
           };
         },
@@ -54,6 +63,7 @@ const { SupabaseStore, streakFrom } = await import("@/lib/db/supabase");
 const store = () => new SupabaseStore("https://x.supabase.co", "anon-key");
 
 beforeEach(() => {
+  state.insertReturns = null;
   state.inserted = [];
   state.updated = [];
   state.deleted = [];
@@ -101,6 +111,36 @@ describe("SupabaseStore writes", () => {
 
     expect(state.inserted).toHaveLength(1);
     expect(state.inserted[0].rows).toHaveLength(3);
+  });
+
+  it("throws when the database silently writes nothing", async () => {
+    // Row level security does not error — it writes zero rows and reports
+    // success. That is how practice appeared to save while the dashboard
+    // stayed empty, so it must be caught loudly.
+    state.insertReturns = [];
+
+    await expect(
+      store().recordAttempts([
+        {
+          sessionId: "s1", kind: "vocab", scope: "A3", wordKey: "A3|le père",
+          direction: "en-fr", prompt: "father", expected: "le père",
+          given: "le père", status: "correct", errorKind: null, ms: 100,
+        },
+      ])
+    ).rejects.toThrow(/wrote 0 of 1 rows/);
+  });
+
+  it("names row level security as the likely cause of a silent rejection", async () => {
+    state.insertReturns = [];
+    await expect(
+      store().recordAttempts([
+        {
+          sessionId: "s1", kind: "vocab", scope: "A3", wordKey: "k",
+          direction: "en-fr", prompt: "p", expected: "e",
+          given: "g", status: "correct", errorKind: null, ms: 1,
+        },
+      ])
+    ).rejects.toThrow(/row level security|SERVICE_ROLE/i);
   });
 
   it("skips the round trip for an empty batch", async () => {

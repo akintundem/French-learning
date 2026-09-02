@@ -34,10 +34,45 @@ describe("store parity", () => {
   });
 
   it("the Postgres schema enables row level security", () => {
-    // Without this, the anon key reads every user's history.
+    // Without this, the anon key reads the whole history.
     expect(pgSchema).toMatch(/alter table sessions enable row level security/i);
     expect(pgSchema).toMatch(/alter table attempts enable row level security/i);
-    expect(pgSchema).toMatch(/create policy/i);
+  });
+
+  it("does not require auth.uid(), which is null without a sign-in", () => {
+    // The original schema defaulted user_id to auth.uid() and gated RLS on it.
+    // With no login that made every insert fail the not-null constraint and
+    // every read return nothing — writes failed silently for days.
+    const active = pgSchema
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("--"))
+      .join("\n");
+    expect(active).not.toMatch(/auth\.uid\(\)/);
+  });
+
+  it("the Postgres schema is safe to run twice", () => {
+    // Re-running is the natural response to a half-finished setup, so every
+    // statement has to tolerate it. `create policy` alone does not.
+    const active = pgSchema
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("--"))
+      .join("\n");
+    for (const stmt of active.match(/create policy/gi) ?? [])
+      expect(stmt).toBe("__no bare create policy__");
+    expect(active).toMatch(/create table if not exists/i);
+    expect(active).toMatch(/create index if not exists/i);
+  });
+
+  it("the dashboard functions can read past row level security", () => {
+    // They return only aggregates, never raw rows.
+    const fns = readFileSync("db/functions.sql", "utf8")
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("--"))
+      .join("\n");
+    const definers = fns.match(/security definer/gi) ?? [];
+    const functions = fns.match(/create or replace function/gi) ?? [];
+    expect(definers.length).toBe(functions.length);
+    expect(fns).toMatch(/set search_path = public/i);
   });
 
   it("the mastery rule is stated identically in both", () => {

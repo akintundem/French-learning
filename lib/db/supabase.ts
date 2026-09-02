@@ -48,7 +48,7 @@ export class SupabaseStore implements Store {
 
   async recordAttempts(list: NewAttempt[]): Promise<void> {
     if (!list.length) return;
-    const { error } = await this.db.from("attempts").insert(
+    const { data, error } = await this.db.from("attempts").insert(
       list.map((a) => ({
         session_id: a.sessionId,
         kind: a.kind,
@@ -62,8 +62,21 @@ export class SupabaseStore implements Store {
         error_kind: a.errorKind,
         ms: a.ms,
       }))
-    );
+    ).select("id");
+
     if (error) throw new Error(`recordAttempts: ${error.message}`);
+
+    // A row-level-security rejection is not an error — it silently writes
+    // nothing. Without this check, practice appears to save and the dashboard
+    // stays empty forever.
+    if (!data || data.length < list.length) {
+      throw new Error(
+        `recordAttempts: wrote ${data?.length ?? 0} of ${list.length} rows. ` +
+          `The database rejected the write — most likely row level security ` +
+          `with an anon key. Set SUPABASE_SERVICE_ROLE_KEY, or re-run ` +
+          `db/postgres.sql.`
+      );
+    }
   }
 
   async dashboard(opts: { days?: number } = {}): Promise<Dashboard> {

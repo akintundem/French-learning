@@ -55,6 +55,21 @@ function EmptyState() {
       >
         Start practising
       </Link>
+
+      {/* This page looks identical whether you have not practised yet or the
+          database is silently rejecting every write, so point at the check
+          that tells the two apart. */}
+      <p className="mt-10 border-t border-rule pt-6 text-[14px] text-ink-faint">
+        Already answered questions and still seeing this? Storage is not saving
+        them.{" "}
+        <a
+          href="/api/health"
+          className="text-clay underline underline-offset-4 hover:text-ink"
+        >
+          Run the storage check
+        </a>{" "}
+        — it writes a row, reads it back, and names whatever fails.
+      </p>
     </main>
   );
 }

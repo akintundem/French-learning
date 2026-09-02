@@ -1,8 +1,14 @@
 -- Dashboard aggregations, run in Postgres rather than pulled into the app.
--- Apply this in the Supabase SQL editor after db/postgres.sql.
 --
--- Each function is SECURITY INVOKER (the default), so Row Level Security still
--- applies and a caller only ever aggregates their own rows.
+-- Run db/postgres.sql FIRST — these functions reference the tables it creates,
+-- and running this file on its own fails with
+-- `relation "attempts" does not exist`.
+--
+-- Each is SECURITY DEFINER so it can read past Row Level Security. That is
+-- safe here because every function only ever returns aggregates — counts and
+-- rates — never raw rows, and none takes a parameter that reaches a WHERE
+-- clause. search_path is pinned so the function body cannot be redirected at
+-- another schema.
 
 -- Totals, including the mastery rule: a word counts once it has 3+ correct
 -- answers and the most recent two attempts were both correct.
@@ -11,7 +17,7 @@ returns table (
   attempts bigint, correct bigint, words_seen bigint,
   words_mastered bigint, sessions bigint
 )
-language sql stable as $$
+language sql stable security definer set search_path = public as $$
   with per_word as (
     select
       word_key,
@@ -37,7 +43,7 @@ returns table (
   scope text, attempts bigint, correct bigint,
   words_seen bigint, words_mastered bigint
 )
-language sql stable as $$
+language sql stable security definer set search_path = public as $$
   with per_word as (
     select
       scope, word_key,
@@ -72,7 +78,7 @@ returns table (
   word_key text, prompt text, expected text,
   attempts bigint, correct bigint, last_status text, last_seen timestamptz
 )
-language sql stable as $$
+language sql stable security definer set search_path = public as $$
   with agg as (
     select
       word_key,
@@ -101,7 +107,7 @@ $$;
 
 create or replace function dashboard_errors()
 returns table (error_kind text, n bigint)
-language sql stable as $$
+language sql stable security definer set search_path = public as $$
   select coalesce(error_kind, 'unknown'), count(*)
   from attempts
   where status <> 'correct'
@@ -110,7 +116,7 @@ $$;
 
 create or replace function dashboard_activity(days int default 30)
 returns table (day text, attempts bigint, correct bigint)
-language sql stable as $$
+language sql stable security definer set search_path = public as $$
   select
     to_char(asked_at, 'YYYY-MM-DD'),
     count(*),
