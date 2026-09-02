@@ -148,11 +148,13 @@ SQLite locally (`db/practice.db`, created on first run). All SQL sits behind the
 `Store` interface in `lib/db/types.ts`, so nothing outside `lib/db/sqlite.ts`
 touches the database.
 
-**Deploying to Supabase:** run `db/postgres.sql` in the SQL editor — it creates
-the same schema with native types *and enables Row Level Security*, which is not
-optional; without those policies anyone holding the anon key can read every
-user's history. Then add a `SupabaseStore implements Store` and switch on an env
-var in `lib/db/index.ts`. `db/README.md` lists the handful of query differences.
+**In production it uses Supabase.** The backend is chosen from the environment —
+Supabase when `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are
+set, SQLite otherwise — so no code changes are needed to deploy. You do have to
+run `db/postgres.sql` and `db/functions.sql` in the Supabase SQL editor first;
+env vars alone won't work without the tables.
+
+See **[DEPLOY.md](DEPLOY.md)** for the full walkthrough.
 
 Writes are batched and fire-and-forget: a failed write costs you statistics,
 never a blocked answer.
