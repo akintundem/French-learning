@@ -8,7 +8,7 @@ export default function Home() {
       <header className="border-b border-rule">
         <div className="mx-auto max-w-3xl px-5 pt-14 pb-10 sm:px-8 sm:pt-20 sm:pb-14">
           <h1 className="font-serif text-4xl leading-[1.1] tracking-[-0.015em] sm:text-5xl">
-            Orthographe
+            Moses&rsquo;s Space
           </h1>
           <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-ink-soft">
             Two directions, switchable inside any module.{" "}

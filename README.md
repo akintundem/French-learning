@@ -1,4 +1,4 @@
-# Orthographe
+# Moses’s Space
 
 French spelling practice, built from a personal A2–B1 dictionary of ~1,450
 words. You get the English, you write the French — and it checks the spelling

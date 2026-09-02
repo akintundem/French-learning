@@ -25,11 +25,11 @@ const ICON =
   );
 
 export const metadata: Metadata = {
-  title: "Orthographe — French spelling practice",
+  title: "Moses’s Space — French spelling practice",
   description:
     "Spell your way through 1,400 French words, A2 to B1. Accents and articles count.",
   icons: { icon: ICON, apple: ICON },
-  appleWebApp: { capable: true, title: "Orthographe", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Moses’s Space", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
