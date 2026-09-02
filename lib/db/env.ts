@@ -48,11 +48,12 @@ export function findSupabaseCredentials(env: Env = process.env): Credentials | n
   );
   if (!keyCandidates.length) return null;
 
-  // A service-role key is used when present: it is the only way to write
-  // without an authenticated user, which is how a single-user deploy works.
+  // The anon key is preferred. The schema grants it exactly the writes the app
+  // needs and no select, so a service-role key — which bypasses RLS entirely —
+  // buys nothing here and is worth avoiding.
   const keyEntry =
-    keyCandidates.find(([n]) => isServiceRole(n)) ??
     keyCandidates.find(([n]) => n === "NEXT_PUBLIC_SUPABASE_ANON_KEY") ??
+    keyCandidates.find(([n]) => !isServiceRole(n)) ??
     keyCandidates[0];
 
   return {

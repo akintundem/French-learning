@@ -48,11 +48,24 @@ describe("finding credentials whatever they are called", () => {
     expect(c?.url).toBe(URL_);
   });
 
-  it("prefers a service-role key, which is the one that can write", () => {
+  it("prefers the anon key, so a stray service-role key is not used", () => {
+    // The schema grants the anon key what the app needs; a service-role key
+    // bypasses RLS entirely and should not be picked up by accident.
     const service = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZSJ9.c2ln";
     const c = findSupabaseCredentials({
       SUPABASE_URL: URL_,
-      SUPABASE_ANON_KEY: JWT,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: JWT,
+      SUPABASE_SERVICE_ROLE_KEY: service,
+    });
+
+    expect(c?.key).toBe(JWT);
+    expect(c?.usingServiceRole).toBe(false);
+  });
+
+  it("falls back to a service-role key only when it is the only one", () => {
+    const service = "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZSJ9.c2ln";
+    const c = findSupabaseCredentials({
+      SUPABASE_URL: URL_,
       SUPABASE_SERVICE_ROLE_KEY: service,
     });
 

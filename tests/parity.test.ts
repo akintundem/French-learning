@@ -57,10 +57,38 @@ describe("store parity", () => {
       .split("\n")
       .filter((l) => !l.trim().startsWith("--"))
       .join("\n");
-    for (const stmt of active.match(/create policy/gi) ?? [])
-      expect(stmt).toBe("__no bare create policy__");
+    // `create policy` has no IF NOT EXISTS form, so each one must be preceded
+    // by a matching `drop policy if exists`.
+    const created = [...active.matchAll(/create policy "([^"]+)"/gi)].map((m) => m[1]);
+    const dropped = [...active.matchAll(/drop policy if exists "([^"]+)"/gi)].map((m) => m[1]);
+    expect(created.length).toBeGreaterThan(0);
+    for (const name of created) expect(dropped).toContain(name);
+
     expect(active).toMatch(/create table if not exists/i);
     expect(active).toMatch(/create index if not exists/i);
+  });
+
+  it("grants the public key no way to read raw rows", () => {
+    // The whole no-service-role design rests on this: writes are permitted,
+    // select is not, and every figure comes back through an aggregate.
+    const active = pgSchema
+      .split("\n")
+      .filter((l) => !l.trim().startsWith("--"))
+      .join("\n");
+
+    expect(active).toMatch(/for insert with check/i);
+    expect(active).not.toMatch(/for select/i);
+    expect(active).not.toMatch(/for all/i);
+  });
+
+  it("the store never selects raw rows from either table", () => {
+    // A .select() after .from() would need a permission the schema withholds,
+    // so it would fail in production while passing against a mock.
+    const src = readFileSync("lib/db/supabase.ts", "utf8");
+    const selectsAfterFrom = src.match(
+      /\.from\("(sessions|attempts)"\)[\s\S]{0,200}?\.select\(/g
+    );
+    expect(selectsAfterFrom).toBeNull();
   });
 
   it("the dashboard functions can read past row level security", () => {

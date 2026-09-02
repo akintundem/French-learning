@@ -50,19 +50,30 @@ If both are present, the canonical `NEXT_PUBLIC_SUPABASE_URL` wins.
 The Progress page's *Technical detail* section lists which variables it can see
 and which two it is reading from — names only, never values.
 
-### The service-role key is required
+### You do not need the service-role key
 
-`SUPABASE_SERVICE_ROLE_KEY` is **not optional for this app.** There is no
-sign-in, so there is no `auth.uid()` to scope rows by. The schema keeps Row
-Level Security on with no anon policy — meaning the public key in the browser
-can read nothing — and the server writes with the service-role key, which
-bypasses RLS by design.
+Two variables are all this app uses. `db/postgres.sql` grants the public
+(anon) key exactly what is needed and nothing more:
 
-Without it, writes are rejected and the dashboard stays empty forever.
+| Operation | Allowed? |
+|---|---|
+| Insert sessions and attempts | yes — recording practice |
+| Update a session, delete rows | yes — ending a session, the Reset button |
+| **Select raw rows** | **no** |
 
-Copy it from Supabase → Settings → API → `service_role`, and add it in Vercel
-as `SUPABASE_SERVICE_ROLE_KEY`. **Never give it a `NEXT_PUBLIC_` prefix** —
-that would ship it to the browser and hand anyone full access to the database.
+So the key in the browser cannot read your practice history at all. Every
+figure on the dashboard comes from the aggregate functions in
+`db/functions.sql`, which return counts and rates and never individual rows.
+
+**If you already added `SUPABASE_SERVICE_ROLE_KEY`, remove it.** It bypasses
+row level security entirely and buys nothing here. `/api/health` warns if it
+finds one.
+
+What this does not protect against: with no login, anyone who found the public
+key could add junk rows or reset your stats. They could not read anything. For
+vocabulary practice that is a reasonable trade; if you want it airtight, add
+Supabase auth and switch to the per-user policies commented at the end of
+`db/postgres.sql`.
 
 ## 3. Deploy
 
@@ -88,7 +99,7 @@ request.
 | `no Supabase URL + key pair found` | Variables missing or not applied — add them and **redeploy** |
 | `relation "attempts" does not exist` | Step 1 not run — run `db/postgres.sql` |
 | `function dashboard_totals does not exist` | `db/functions.sql` not run |
-| `wrote 0 of 1 rows` | Using the anon key — set `SUPABASE_SERVICE_ROLE_KEY` |
+| `violates row-level security policy` | Re-run `db/postgres.sql` — it grants the anon key insert access |
 | `"backend": "sqlite"` in production | Same as the first row |
 
 > **A dashboard that says "Answer some questions…" is ambiguous:** it looks the

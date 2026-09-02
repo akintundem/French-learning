@@ -3,8 +3,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 // A minimal fake of the supabase-js surface this store actually uses.
 type Row = Record<string, unknown>;
 const state = {
-  /** Overrides what an insert returns, to simulate an RLS rejection. */
-  insertReturns: null as Row[] | null,
+  /** Set to simulate the database refusing a write. */
+  insertError: null as { message: string } | null,
   inserted: [] as { table: string; rows: Row[] }[],
   updated: [] as { table: string; patch: Row; id: string }[],
   deleted: [] as string[],
@@ -19,19 +19,9 @@ vi.mock("@supabase/supabase-js", () => ({
         insert(rows: Row | Row[]) {
           const list = Array.isArray(rows) ? rows : [rows];
           state.inserted.push({ table, rows: list });
-          return {
-            select: (cols?: string) => {
-              // sessions insert uses .select("id").single(); attempts uses
-              // .select("id") and awaits the array.
-              const rows = state.insertReturns ?? list.map((_, i) => ({ id: `row-${i}` }));
-              const result = { data: rows, error: null };
-              return Object.assign(Promise.resolve(result), {
-                single: async () => ({ data: { id: "new-session-id" }, error: null }),
-                _cols: cols,
-              });
-            },
-            then: (r: (v: { error: null }) => void) => r({ error: null }),
-          };
+          // The real client returns a thenable; the store awaits it directly
+          // because it never reads the written rows back.
+          return Promise.resolve({ data: null, error: state.insertError });
         },
         update(patch: Row) {
           return {
@@ -63,7 +53,7 @@ const { SupabaseStore, streakFrom } = await import("@/lib/db/supabase");
 const store = () => new SupabaseStore("https://x.supabase.co", "anon-key");
 
 beforeEach(() => {
-  state.insertReturns = null;
+  state.insertError = null;
   state.inserted = [];
   state.updated = [];
   state.deleted = [];
@@ -72,14 +62,17 @@ beforeEach(() => {
 });
 
 describe("SupabaseStore writes", () => {
-  it("creates a session and returns the new id", async () => {
+  it("creates a session with a client-generated id", async () => {
+    // The id is generated here because reading the row back would need a
+    // select permission the public key deliberately lacks.
     const id = await store().startSession({
       kind: "vocab", scope: "A3", direction: "en-fr",
     });
-    expect(id).toBe("new-session-id");
+
+    expect(id).toMatch(/^[0-9a-f-]{36}$/);
     expect(state.inserted[0].table).toBe("sessions");
     expect(state.inserted[0].rows[0]).toMatchObject({
-      kind: "vocab", scope: "A3", direction: "en-fr",
+      id, kind: "vocab", scope: "A3", direction: "en-fr",
     });
   });
 
@@ -94,11 +87,12 @@ describe("SupabaseStore writes", () => {
 
     const row = state.inserted[0].rows[0];
     // A mismatch here is silent data loss, so every column is checked.
-    expect(row).toEqual({
+    expect(row).toMatchObject({
       session_id: "s1", kind: "vocab", scope: "A3", word_key: "A3|le père",
       direction: "en-fr", prompt: "father", expected: "le père",
       given: "la père", status: "wrong", error_kind: "article", ms: 1400,
     });
+    expect(row.id).toMatch(/^[0-9a-f-]{36}$/);
   });
 
   it("sends one insert for a batch, not one per attempt", async () => {
@@ -113,11 +107,12 @@ describe("SupabaseStore writes", () => {
     expect(state.inserted[0].rows).toHaveLength(3);
   });
 
-  it("throws when the database silently writes nothing", async () => {
-    // Row level security does not error — it writes zero rows and reports
-    // success. That is how practice appeared to save while the dashboard
-    // stayed empty, so it must be caught loudly.
-    state.insertReturns = [];
+  it("surfaces a refused write instead of appearing to succeed", async () => {
+    // Postgres reports an RLS refusal on INSERT as error 42501. Swallowing it
+    // is what made practice look saved while the dashboard stayed empty.
+    state.insertError = {
+      message: 'new row violates row-level security policy for table "attempts"',
+    };
 
     await expect(
       store().recordAttempts([
@@ -127,11 +122,11 @@ describe("SupabaseStore writes", () => {
           given: "le père", status: "correct", errorKind: null, ms: 100,
         },
       ])
-    ).rejects.toThrow(/wrote 0 of 1 rows/);
+    ).rejects.toThrow(/row-level security/i);
   });
 
-  it("names row level security as the likely cause of a silent rejection", async () => {
-    state.insertReturns = [];
+  it("points at the fix when a write is refused", async () => {
+    state.insertError = { message: "permission denied for table attempts" };
     await expect(
       store().recordAttempts([
         {
@@ -140,7 +135,7 @@ describe("SupabaseStore writes", () => {
           given: "g", status: "correct", errorKind: null, ms: 1,
         },
       ])
-    ).rejects.toThrow(/row level security|SERVICE_ROLE/i);
+    ).rejects.toThrow(/db\/postgres\.sql/);
   });
 
   it("skips the round trip for an empty batch", async () => {

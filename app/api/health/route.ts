@@ -21,7 +21,10 @@ export async function GET() {
     ok: backend === "sqlite" || !!creds,
     detail: creds
       ? `reading ${creds.urlVar} and ${creds.keyVar}` +
-        (creds.usingServiceRole ? " (service role)" : " (anon key)")
+        (creds.usingServiceRole
+          ? " — this is a SERVICE ROLE key, which bypasses row level " +
+            "security. The app does not need one; the anon key is enough."
+          : " (anon key)")
       : `no Supabase URL + key pair found. Present: ${
           supabaseVarNames().join(", ") || "none"
         }`,

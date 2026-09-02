@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { randomUUID } from "node:crypto";
 import type {
   Dashboard, DayActivity, ErrorBreakdown, NewAttempt, NewSession,
   ScopeStat, Status, Store, Totals, WordStat,
@@ -11,9 +12,10 @@ import type {
  * db/functions.sql — rather than being computed here. Pulling every attempt
  * into the app to count them would get slower every week you practise.
  *
- * Row Level Security scopes every query to the signed-in user, so no query
- * here filters on user_id: the database does it. Without the policies in
- * db/postgres.sql, this would read everyone's rows.
+ * There is no service-role key. The public key is granted writes but NOT
+ * select, so raw rows cannot be read with it at all — every figure comes back
+ * through the aggregate functions. That means inserts cannot read themselves
+ * back, so ids are generated here rather than by the database.
  */
 export class SupabaseStore implements Store {
   private db: SupabaseClient;
@@ -25,13 +27,14 @@ export class SupabaseStore implements Store {
   }
 
   async startSession(s: NewSession): Promise<string> {
-    const { data, error } = await this.db
+    // Generated here, not returned by the database: reading the row back
+    // would need a select permission the public key deliberately lacks.
+    const id = randomUUID();
+    const { error } = await this.db
       .from("sessions")
-      .insert({ kind: s.kind, scope: s.scope, direction: s.direction })
-      .select("id")
-      .single();
+      .insert({ id, kind: s.kind, scope: s.scope, direction: s.direction });
     if (error) throw new Error(`startSession: ${error.message}`);
-    return data.id as string;
+    return id;
   }
 
   async endSession(id: string): Promise<void> {
@@ -48,8 +51,9 @@ export class SupabaseStore implements Store {
 
   async recordAttempts(list: NewAttempt[]): Promise<void> {
     if (!list.length) return;
-    const { data, error } = await this.db.from("attempts").insert(
+    const { error } = await this.db.from("attempts").insert(
       list.map((a) => ({
+        id: randomUUID(),
         session_id: a.sessionId,
         kind: a.kind,
         scope: a.scope,
@@ -62,20 +66,16 @@ export class SupabaseStore implements Store {
         error_kind: a.errorKind,
         ms: a.ms,
       }))
-    ).select("id");
+    );
 
-    if (error) throw new Error(`recordAttempts: ${error.message}`);
-
-    // A row-level-security rejection is not an error — it silently writes
-    // nothing. Without this check, practice appears to save and the dashboard
-    // stays empty forever.
-    if (!data || data.length < list.length) {
-      throw new Error(
-        `recordAttempts: wrote ${data?.length ?? 0} of ${list.length} rows. ` +
-          `The database rejected the write — most likely row level security ` +
-          `with an anon key. Set SUPABASE_SERVICE_ROLE_KEY, or re-run ` +
-          `db/postgres.sql.`
-      );
+    // Postgres reports an RLS refusal on INSERT as an error (42501), unlike a
+    // filtered SELECT which just returns nothing — so this catches it.
+    if (error) {
+      const hint = /policy|permission|denied|42501/i.test(error.message)
+        ? " The database refused the write: re-run db/postgres.sql, which " +
+          "grants the public key insert access."
+        : "";
+      throw new Error(`recordAttempts: ${error.message}.${hint}`);
     }
   }
 
