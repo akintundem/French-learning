@@ -1,68 +1,126 @@
-import Image from "next/image";
+import Link from "next/link";
+import { MODULES, PARTS, TOTAL_WORDS } from "@/lib/vocab";
+import { TOPICS } from "@/lib/practical";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
+    <div className="min-h-dvh">
+      <header className="border-b border-rule">
+        <div className="mx-auto max-w-3xl px-5 pt-14 pb-10 sm:px-8 sm:pt-20 sm:pb-14">
+          <h1 className="font-serif text-4xl leading-[1.1] tracking-[-0.015em] sm:text-5xl">
+            Orthographe
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-ink-soft">
+            Two directions, switchable inside any module.{" "}
+            <span className="text-ink">EN&nbsp;→&nbsp;FR</span> gives you the
+            English and you spell the French — accents and articles both count,{" "}
+            <span className="text-ink">l’école</span>, not{" "}
+            <span className="text-ink">ecole</span>.{" "}
+            <span className="text-ink">FR&nbsp;→&nbsp;EN</span> runs it the other
+            way, for recall.
           </p>
+          <p className="mt-6 text-sm text-ink-faint">
+            {TOTAL_WORDS.toLocaleString()} words · {MODULES.length} modules · A2 to B1
+          </p>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/practice/all"
+              className="inline-flex h-11 items-center rounded-md bg-ink px-5 text-[15px] font-medium text-paper transition-colors hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            >
+              Practise everything
+            </Link>
+            <Link
+              href="/dashboard"
+              className="inline-flex h-11 items-center rounded-md border border-rule-strong px-5 text-[15px] font-medium text-ink transition-colors hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            >
+              Progress
+            </Link>
+            <Link
+              href="/practice/random"
+              className="inline-flex h-11 items-center rounded-md border border-rule-strong px-5 text-[15px] font-medium text-ink transition-colors hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            >
+              Quick 20
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+      </header>
+
+      <main className="mx-auto max-w-3xl px-5 pb-24 sm:px-8">
+        <section className="pt-12">
+          <div className="flex items-baseline justify-between gap-4 border-b border-rule pb-3">
+            <h2 className="font-serif text-xl tracking-[-0.01em]">
+              Numbers &amp; dates
+            </h2>
+            <span className="text-sm text-ink-faint">Written out in full</span>
+          </div>
+
+          <p className="pt-4 text-[15px] leading-relaxed text-ink-soft">
+            Not vocabulary — these are generated fresh every time, so you never
+            learn the list instead of the rule. You get the figures, you write
+            the French: <span className="text-ink">3:45 pm</span> →{" "}
+            <span className="answer-input text-ink">
+              quinze heures quarante-cinq
+            </span>
+            .
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href="/numbers/all"
+              className="inline-flex h-11 items-center rounded-md bg-ink px-5 text-[15px] font-medium text-paper transition-colors hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            >
+              Mixed practice
+            </Link>
+            {TOPICS.map((t) => (
+              <Link
+                key={t.id}
+                href={`/numbers/${t.id}`}
+                title={t.blurb}
+                className="inline-flex h-11 items-center rounded-md border border-rule-strong px-4 text-[15px] text-ink transition-colors hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+              >
+                {t.title}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {PARTS.map((part) => {
+          const mods = MODULES.filter((m) => m.part === part.id);
+          if (!mods.length) return null;
+
+          return (
+            <section key={part.id} className="pt-12">
+              <div className="flex items-baseline justify-between gap-4 border-b border-rule pb-3">
+                <h2 className="font-serif text-xl tracking-[-0.01em]">
+                  {part.title}
+                </h2>
+                <span className="text-sm text-ink-faint">{part.blurb}</span>
+              </div>
+
+              <ul>
+                {mods.map((m) => (
+                  <li key={m.id}>
+                    <Link
+                      href={`/practice/${m.id}`}
+                      className="group flex items-baseline gap-4 border-b border-rule py-4 transition-colors hover:bg-paper-raised focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-clay"
+                    >
+                      <span className="w-9 shrink-0 font-mono text-[13px] text-ink-faint">
+                        {m.id}
+                      </span>
+                      <span className="flex-1 text-[16px] leading-snug text-ink group-hover:text-clay">
+                        {m.title}
+                      </span>
+                      <span className="shrink-0 text-[13px] tabular-nums text-ink-faint">
+                        {m.words.length}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </main>
     </div>
   );
