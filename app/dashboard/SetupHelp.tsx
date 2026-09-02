@@ -6,9 +6,14 @@
 export default function SetupHelp({
   message,
   backend,
+  detectedVars = [],
+  usingVars = null,
 }: {
   message: string;
   backend: "supabase" | "sqlite";
+  /** Names only, never values. */
+  detectedVars?: string[];
+  usingVars?: { url: string; key: string } | null;
 }) {
   const diagnosis = diagnose(message, backend);
 
@@ -44,6 +49,25 @@ export default function SetupHelp({
             Backend in use:{" "}
             <span className="font-mono text-ink">{backend}</span>
           </p>
+
+          {usingVars && (
+            <p>
+              Reading credentials from{" "}
+              <span className="font-mono text-ink">{usingVars.url}</span> and{" "}
+              <span className="font-mono text-ink">{usingVars.key}</span>
+            </p>
+          )}
+
+          {detectedVars.length > 0 && (
+            <div>
+              <p>Supabase-related variables present:</p>
+              <ul className="mt-1 font-mono text-[12px] text-ink">
+                {detectedVars.map((n) => (
+                  <li key={n}>{n}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <pre className="overflow-x-auto rounded bg-paper-raised p-3 font-mono text-[12px] text-ink">
             {message}
           </pre>

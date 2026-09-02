@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getStore, storeKind } from "@/lib/db";
+import { findSupabaseCredentials, supabaseVarNames } from "@/lib/db/env";
 import { project } from "@/lib/db/goal";
 import { MODULES, TOTAL_WORDS } from "@/lib/vocab";
 import type { Dashboard } from "@/lib/db/types";
@@ -26,7 +27,20 @@ export default async function DashboardPage() {
   if (!data) {
     return (
       <Shell>
-        <SetupHelp message={failure ?? "Unknown error"} backend={storeKind()} />
+        <SetupHelp
+          message={failure ?? "Unknown error"}
+          backend={storeKind()}
+          // Names only — never the values.
+          detectedVars={supabaseVarNames()}
+          usingVars={
+            findSupabaseCredentials()
+              ? {
+                  url: findSupabaseCredentials()!.urlVar,
+                  key: findSupabaseCredentials()!.keyVar,
+                }
+              : null
+          }
+        />
       </Shell>
     );
   }

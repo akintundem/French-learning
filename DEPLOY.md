@@ -31,6 +31,25 @@ Project → **Settings → Environment Variables**:
 Set them for **Production, Preview and Development**. Redeploy after adding
 them — Vercel does not apply new variables to an existing build.
 
+### If you used the Vercel–Supabase integration instead
+
+You don't need to set anything by hand — the integration creates its own
+variables and the app finds them. It matches on the *shape* of the values (a
+`*.supabase.co` URL, a JWT-shaped key) rather than one exact name, so the
+integration's naming works whatever it chooses.
+
+That includes the doubled names the integration produces when its **prefix**
+field is filled in with something that already appears in the variable name —
+`NEXT_PUBLIC_SUPABASE_` as a prefix yields
+`NEXT_PUBLIC_NEXT_PUBLIC_SUPABASE_SUPABASE_URL`. The app reads those fine, but
+they are worth tidying: **leave the integration's prefix field empty**, or set
+the two canonical variables by hand and remove the integration's.
+
+If both are present, the canonical `NEXT_PUBLIC_SUPABASE_URL` wins.
+
+The Progress page's *Technical detail* section lists which variables it can see
+and which two it is reading from — names only, never values.
+
 ### About the service-role key
 
 The code also reads `SUPABASE_SERVICE_ROLE_KEY` and prefers it if present.

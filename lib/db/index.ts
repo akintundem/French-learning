@@ -1,3 +1,4 @@
+import { findSupabaseCredentials } from "./env";
 import type { Store } from "./types";
 
 declare global {
@@ -7,25 +8,26 @@ declare global {
 /**
  * Picks the backend from the environment.
  *
- * Supabase when both variables are set — which is how it runs on Vercel, where
+ * Supabase when credentials are found — which is how it runs on Vercel, where
  * the filesystem is ephemeral and a SQLite file would be empty on every
  * request. SQLite otherwise, for local development.
  *
+ * Credentials are matched by shape rather than by one exact variable name, so
+ * whatever the Vercel integration happens to call them, they are found. See
+ * lib/db/env.ts.
+ *
  * better-sqlite3 is a native module that cannot build in a serverless runtime,
- * so it is imported lazily: the branch below is never evaluated in production.
+ * so both stores are required lazily: only one branch is ever evaluated.
  */
 export function getStore(): Store {
   if (globalThis.__store) return globalThis.__store;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ??
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const creds = findSupabaseCredentials();
 
-  if (url && key) {
+  if (creds) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { SupabaseStore } = require("./supabase") as typeof import("./supabase");
-    globalThis.__store = new SupabaseStore(url, key);
+    globalThis.__store = new SupabaseStore(creds.url, creds.key);
   } else {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { SqliteStore } = require("./sqlite") as typeof import("./sqlite");
@@ -37,11 +39,7 @@ export function getStore(): Store {
 
 /** Which backend is active — surfaced so a misconfigured deploy is obvious. */
 export function storeKind(): "supabase" | "sqlite" {
-  return process.env.NEXT_PUBLIC_SUPABASE_URL &&
-    (process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    ? "supabase"
-    : "sqlite";
+  return findSupabaseCredentials() ? "supabase" : "sqlite";
 }
 
 export type { Store };
