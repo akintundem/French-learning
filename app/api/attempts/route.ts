@@ -29,6 +29,12 @@ export async function POST(req: Request) {
     });
   }
 
-  if (clean.length) await getStore().recordAttempts(clean);
-  return NextResponse.json({ recorded: clean.length });
+  try {
+    if (clean.length) await getStore().recordAttempts(clean);
+    return NextResponse.json({ recorded: clean.length });
+  } catch (e) {
+    // Losing a few rows of statistics is acceptable; breaking the quiz is not.
+    console.error("[api/attempts] write failed:", e);
+    return NextResponse.json({ recorded: 0, error: "unavailable" }, { status: 503 });
+  }
 }

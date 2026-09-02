@@ -1,18 +1,62 @@
 import Link from "next/link";
-import { getStore } from "@/lib/db";
+import { getStore, storeKind } from "@/lib/db";
 import { project } from "@/lib/db/goal";
 import { MODULES, TOTAL_WORDS } from "@/lib/vocab";
+import type { Dashboard } from "@/lib/db/types";
 import Charts from "./Charts";
+import SetupHelp from "./SetupHelp";
 
 // Statistics change on every answer, so this page is always read fresh.
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const data = await getStore().dashboard({ days: 30 });
-  const goal = project(data, TOTAL_WORDS);
+  // A statistics page must never take the app down. If the database is
+  // unreachable or not set up, say so and explain the fix rather than
+  // handing back a blank server error.
+  let data: Dashboard | null = null;
+  let failure: string | null = null;
 
+  try {
+    data = await getStore().dashboard({ days: 30 });
+  } catch (e) {
+    failure = e instanceof Error ? e.message : String(e);
+    console.error("[dashboard] query failed:", failure);
+  }
+
+  if (!data) {
+    return (
+      <Shell>
+        <SetupHelp message={failure ?? "Unknown error"} backend={storeKind()} />
+      </Shell>
+    );
+  }
+
+  const goal = project(data, TOTAL_WORDS);
   const titles = Object.fromEntries(MODULES.map((m) => [m.id, m.title]));
 
+  return (
+    <Shell subtitle={
+      data.totals.attempts
+        ? `${data.totals.attempts.toLocaleString()} answers across ${data.totals.sessions} sessions.`
+        : "Nothing recorded yet — answer a few questions and this fills in."
+    }>
+      <Charts
+        data={data}
+        goal={goal}
+        totalWords={TOTAL_WORDS}
+        moduleTitles={titles}
+      />
+    </Shell>
+  );
+}
+
+function Shell({
+  children,
+  subtitle,
+}: {
+  children: React.ReactNode;
+  subtitle?: string;
+}) {
   return (
     <div className="min-h-dvh">
       <header className="border-b border-rule">
@@ -26,20 +70,14 @@ export default async function DashboardPage() {
           <h1 className="mt-3 font-serif text-4xl leading-[1.1] tracking-[-0.015em]">
             Progress
           </h1>
-          <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">
-            {data.totals.attempts
-              ? `${data.totals.attempts.toLocaleString()} answers across ${data.totals.sessions} sessions.`
-              : "Nothing recorded yet — answer a few questions and this fills in."}
-          </p>
+          {subtitle && (
+            <p className="mt-3 text-[17px] leading-relaxed text-ink-soft">
+              {subtitle}
+            </p>
+          )}
         </div>
       </header>
-
-      <Charts
-        data={data}
-        goal={goal}
-        totalWords={TOTAL_WORDS}
-        moduleTitles={titles}
-      />
+      {children}
     </div>
   );
 }
