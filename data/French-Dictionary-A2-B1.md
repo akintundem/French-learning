@@ -1810,6 +1810,366 @@ Very common in speech, and largely opaque if you haven't met them.
 ---
 ---
 
+# PART F — SITUATIONS AND THEMES
+
+The sections above are strong on nouns and weak on the phrases that actually
+get used. You may know `le téléphone` without being able to answer one, or
+`à gauche` without being able to *ask* the way.
+
+**F1–F5 are functional** — the language of a situation, not its vocabulary.
+Learn these as whole phrases; do not take them apart.
+**F6–F13 fill the themed gaps** the A-sections skipped.
+
+---
+
+## F1. On the phone
+
+| French | English |
+|---|---|
+| allô ? | hello? (on the phone only) |
+| qui est à l'appareil ? | who's calling? |
+| c'est de la part de qui ? | who's speaking? |
+| c'est de la part de Marie | it's Marie |
+| ne quittez pas | hold the line |
+| un instant, s'il vous plaît | one moment, please |
+| je vous le / la passe | I'll put you through |
+| la ligne est occupée | the line is busy |
+| je rappelle plus tard | I'll call back later |
+| pouvez-vous rappeler ? | can you call back? |
+| laisser un message | to leave a message |
+| je me suis trompé de numéro | I've got the wrong number |
+| on s'entend mal | it's a bad line |
+| je vous entends mal | I can't hear you well |
+| raccrocher / décrocher | to hang up / to pick up |
+| envoyer un texto | to send a text |
+
+---
+
+## F2. Asking and giving directions
+
+Knowing `à gauche` is not the same as being able to ask. These are the phrases.
+
+| French | English |
+|---|---|
+| pardon, pour aller à... ? | excuse me, how do I get to...? |
+| où se trouve...? | where is...? |
+| est-ce qu'il y a un / une... près d'ici ? | is there a... near here? |
+| c'est loin d'ici ? | is it far from here? |
+| c'est à cinq minutes à pied | it's five minutes on foot |
+| tournez à gauche / à droite | turn left / right |
+| continuez tout droit | keep going straight |
+| prenez la première rue à droite | take the first street on the right |
+| allez jusqu'au bout | go to the end |
+| traversez la rue | cross the street |
+| passez devant... | go past... |
+| c'est en face de... | it's opposite... |
+| c'est à côté de... | it's next to... |
+| c'est au coin de la rue | it's on the corner |
+| vous ne pouvez pas le manquer | you can't miss it |
+| je suis perdu | I'm lost |
+| je cherche cette adresse | I'm looking for this address |
+
+---
+
+## F3. At the doctor's
+
+| French | English |
+|---|---|
+| prendre rendez-vous | to make an appointment |
+| j'ai rendez-vous à... | I have an appointment at... |
+| qu'est-ce qui ne va pas ? | what's wrong? |
+| où avez-vous mal ? | where does it hurt? |
+| j'ai mal ici | it hurts here |
+| ça fait mal | it hurts |
+| depuis quand ? | since when? |
+| depuis trois jours | for three days |
+| je ne me sens pas bien | I don't feel well |
+| je suis enrhumé | I have a cold |
+| j'ai de la fièvre | I have a temperature |
+| je tousse | I'm coughing |
+| j'ai la grippe | I have flu |
+| je suis allergique à... | I'm allergic to... |
+| respirez profondément | breathe deeply |
+| une ordonnance | a prescription |
+| prenez ce médicament | take this medicine |
+| deux fois par jour | twice a day |
+| avant / après les repas | before / after meals |
+| reposez-vous bien | get plenty of rest |
+
+---
+
+## F4. Emergencies
+
+Learn these before you need them.
+
+| French | English |
+|---|---|
+| au secours ! | help! |
+| attention ! | look out! |
+| appelez la police ! | call the police! |
+| appelez une ambulance ! | call an ambulance! |
+| appelez les pompiers ! | call the fire brigade! |
+| il y a eu un accident | there's been an accident |
+| quelqu'un est blessé | someone is injured |
+| j'ai besoin d'aide | I need help |
+| c'est urgent | it's urgent |
+| vite ! | quick! |
+| au feu ! | fire! |
+| au voleur ! | stop, thief! |
+| on m'a volé mon sac | my bag has been stolen |
+| j'ai perdu mon passeport | I've lost my passport |
+| les urgences | A&E, the emergency room |
+| le SAMU | French ambulance service (dial 15) |
+| le numéro d'urgence européen | 112 |
+
+---
+
+## F5. Post, forms and admin
+
+| French | English |
+|---|---|
+| la poste | the post office |
+| un timbre | a stamp |
+| une enveloppe | an envelope |
+| un colis | a parcel |
+| envoyer / recevoir | to send / to receive |
+| l'adresse | the address |
+| le code postal | the postcode |
+| un formulaire | a form |
+| remplir un formulaire | to fill in a form |
+| signer | to sign |
+| une pièce d'identité | proof of identity |
+| une carte d'identité | an ID card |
+| un justificatif de domicile | proof of address |
+| une photocopie | a photocopy |
+| un dossier | a file, an application |
+| faire la queue | to queue |
+| un guichet | a counter, a window |
+| prendre un ticket | to take a number |
+| le prochain, s'il vous plaît | next, please |
+| il manque un document | a document is missing |
+
+---
+
+## F6. School and university subjects
+
+| French | English |
+|---|---|
+| une matière | a subject |
+| les mathématiques / les maths | maths |
+| le français | French |
+| l'anglais | English |
+| l'histoire | history |
+| la géographie | geography |
+| les sciences | science |
+| la biologie | biology |
+| la chimie | chemistry |
+| la physique | physics |
+| l'informatique | computing, IT |
+| la philosophie | philosophy |
+| l'économie | economics |
+| le droit | law |
+| la médecine | medicine |
+| les langues vivantes | modern languages |
+| l'éducation physique / le sport | PE |
+| la musique | music |
+| les arts plastiques | art |
+| ma matière préférée | my favourite subject |
+| je suis fort / nul en... | I'm good / hopeless at... |
+
+---
+
+## F7. Music and instruments
+
+| French | English |
+|---|---|
+| un instrument | an instrument |
+| la guitare | guitar |
+| le piano | piano |
+| le violon | violin |
+| la batterie | drums |
+| la flûte | flute |
+| la trompette | trumpet |
+| le saxophone | saxophone |
+| jouer de la guitare | to play the guitar |
+| chanter | to sing |
+| une chanson | a song |
+| un chanteur / une chanteuse | a singer |
+| un groupe | a band |
+| un concert | a concert |
+| une répétition | a rehearsal |
+| l'orchestre | the orchestra |
+| une chorale | a choir |
+| écouter de la musique | to listen to music |
+
+Note the preposition: **jouer de** an instrument, but **jouer à** a sport.
+
+---
+
+## F8. Films, television and reading
+
+| French | English |
+|---|---|
+| un film | a film |
+| une série | a series |
+| une émission | a programme |
+| une chaîne | a channel |
+| un documentaire | a documentary |
+| les informations / les infos | the news |
+| la publicité / la pub | advertising, the adverts |
+| un acteur / une actrice | an actor / actress |
+| un réalisateur | a director |
+| un personnage | a character |
+| l'intrigue | the plot |
+| les sous-titres | subtitles |
+| en version originale (VO) | in the original language |
+| doublé | dubbed |
+| un roman | a novel |
+| une nouvelle | a short story |
+| un auteur / un écrivain | an author / a writer |
+| un chapitre | a chapter |
+| une bande dessinée / une BD | a comic book |
+| ça parle de quoi ? | what's it about? |
+
+---
+
+## F9. Cooking and recipes
+
+| French | English |
+|---|---|
+| une recette | a recipe |
+| un ingrédient | an ingredient |
+| couper | to cut |
+| éplucher | to peel |
+| mélanger | to mix |
+| ajouter | to add |
+| verser | to pour |
+| remuer | to stir |
+| faire cuire | to cook |
+| faire bouillir | to boil |
+| faire frire | to fry |
+| faire chauffer | to heat up |
+| au four | in the oven |
+| une casserole | a saucepan |
+| une poêle | a frying pan |
+| un couteau | a knife |
+| une cuillère | a spoon |
+| une fourchette | a fork |
+| une assiette | a plate |
+| un bol | a bowl |
+| goûter | to taste |
+| assaisonner | to season |
+
+---
+
+## F10. Driving and the road
+
+| French | English |
+|---|---|
+| conduire | to drive |
+| le permis de conduire | driving licence |
+| rouler | to drive along, to run (of a vehicle) |
+| se garer / stationner | to park |
+| un parking | a car park |
+| l'essence | petrol |
+| le gazole / le diesel | diesel |
+| faire le plein | to fill up |
+| une station-service | a petrol station |
+| une autoroute | a motorway |
+| un péage | a toll |
+| une route | a road |
+| un carrefour | a crossroads |
+| un rond-point | a roundabout |
+| un feu rouge | a traffic light |
+| une ceinture de sécurité | a seatbelt |
+| la vitesse | speed |
+| un embouteillage / un bouchon | a traffic jam |
+| une amende | a fine |
+| un pneu crevé | a flat tyre |
+| tomber en panne | to break down |
+
+---
+
+## F11. Plants, garden and countryside
+
+| French | English |
+|---|---|
+| un arbre | a tree |
+| une fleur | a flower |
+| une plante | a plant |
+| l'herbe | grass |
+| une feuille | a leaf |
+| une branche | a branch |
+| une racine | a root |
+| une graine | a seed |
+| planter | to plant |
+| arroser | to water |
+| pousser | to grow |
+| cueillir | to pick |
+| tondre la pelouse | to mow the lawn |
+| un potager | a vegetable garden |
+| une rose | a rose |
+| un chêne | an oak |
+| un sapin | a fir tree |
+| une haie | a hedge |
+
+---
+
+## F12. Relationships
+
+| French | English |
+|---|---|
+| sortir avec quelqu'un | to go out with someone |
+| tomber amoureux de | to fall in love with |
+| aimer quelqu'un | to love someone |
+| un couple | a couple |
+| un petit ami / une petite amie | a boyfriend / girlfriend |
+| un compagnon / une compagne | a partner |
+| se fiancer | to get engaged |
+| se marier avec | to marry |
+| un mariage | a wedding, a marriage |
+| une bague | a ring |
+| se disputer | to argue |
+| se réconcilier | to make up |
+| rompre | to break up |
+| divorcer | to get divorced |
+| célibataire | single |
+| s'entendre bien avec | to get on well with |
+| faire confiance à | to trust |
+| se sentir seul | to feel lonely |
+
+---
+
+## F13. Festivals and celebrations
+
+| French | English |
+|---|---|
+| une fête | a party, a festival |
+| un jour férié | a public holiday |
+| Noël | Christmas |
+| le réveillon | Christmas / New Year's Eve dinner |
+| le Nouvel An | New Year |
+| le jour de l'An | New Year's Day |
+| Pâques | Easter |
+| la Toussaint | All Saints' Day |
+| le 14 juillet | Bastille Day |
+| la fête des Mères | Mother's Day |
+| un anniversaire | a birthday, an anniversary |
+| fêter / célébrer | to celebrate |
+| un cadeau | a present |
+| offrir un cadeau | to give a present |
+| une carte de vœux | a greetings card |
+| des feux d'artifice | fireworks |
+| joyeux anniversaire ! | happy birthday! |
+| joyeux Noël ! | merry Christmas! |
+| bonne année ! | happy new year! |
+| félicitations ! | congratulations! |
+| santé ! / tchin-tchin ! | cheers! |
+
+
+---
+---
+
 # PART E — GRAMMAR THIS VOCABULARY NEEDS
 
 Vocabulary alone won't get you to B1. These are the structures the words above slot into — your classes will cover them, this is the checklist.
