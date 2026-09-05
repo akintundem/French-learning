@@ -84,11 +84,19 @@ describe("store parity", () => {
   it("the store never selects raw rows from either table", () => {
     // A .select() after .from() would need a permission the schema withholds,
     // so it would fail in production while passing against a mock.
+    // Scanned by index rather than by regex: a lazy [\s\S]{0,200}? between two
+    // patterns backtracks catastrophically and hangs the run.
     const src = readFileSync("lib/db/supabase.ts", "utf8");
-    const selectsAfterFrom = src.match(
-      /\.from\("(sessions|attempts)"\)[\s\S]{0,200}?\.select\(/g
-    );
-    expect(selectsAfterFrom).toBeNull();
+    const offending: string[] = [];
+    for (const table of ["sessions", "attempts"]) {
+      let at = src.indexOf(`.from("${table}")`);
+      while (at !== -1) {
+        const window = src.slice(at, at + 200);
+        if (window.includes(".select(")) offending.push(`${table}: ${window.slice(0, 60)}`);
+        at = src.indexOf(`.from("${table}")`, at + 1);
+      }
+    }
+    expect(offending).toEqual([]);
   });
 
   it("the dashboard functions can read past row level security", () => {
