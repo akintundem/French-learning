@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { MODULES, PARTS, TOTAL_WORDS } from "@/lib/vocab";
 import { TOPICS } from "@/lib/practical";
+import { GRAMMAR_TOPICS } from "@/lib/grammar";
 
 export default function Home() {
   return (
@@ -76,6 +77,39 @@ export default function Home() {
               <Link
                 key={t.id}
                 href={`/numbers/${t.id}`}
+                title={t.blurb}
+                className="inline-flex h-11 items-center rounded-md border border-rule-strong px-4 text-[15px] text-ink transition-colors hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+              >
+                {t.title}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="pt-12">
+          <div className="flex items-baseline justify-between gap-4 border-b border-rule pb-3">
+            <h2 className="font-serif text-xl tracking-[-0.01em]">Grammar</h2>
+            <span className="text-sm text-ink-faint">A1 · generated</span>
+          </div>
+
+          <p className="pt-4 text-[15px] leading-relaxed text-ink-soft">
+            Endings, questions and word order — generated the same way, so the
+            verb and the pronoun change every time:{" "}
+            <span className="text-ink">we + finir</span> →{" "}
+            <span className="answer-input text-ink">nous finissons</span>.
+          </p>
+
+          <div className="mt-5 flex flex-wrap gap-2">
+            <Link
+              href="/grammar/all"
+              className="inline-flex h-11 items-center rounded-md bg-ink px-5 text-[15px] font-medium text-paper transition-colors hover:bg-clay focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
+            >
+              Mixed practice
+            </Link>
+            {GRAMMAR_TOPICS.map((t) => (
+              <Link
+                key={t.id}
+                href={`/grammar/${t.id}`}
                 title={t.blurb}
                 className="inline-flex h-11 items-center rounded-md border border-rule-strong px-4 text-[15px] text-ink transition-colors hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-clay"
               >

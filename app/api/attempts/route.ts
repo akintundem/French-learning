@@ -4,10 +4,23 @@ import type { NewAttempt, Status } from "@/lib/db/types";
 
 const STATUSES: Status[] = ["correct", "accent", "wrong"];
 
+/**
+ * The client batches roughly one answer per 1.5s, so a legitimate batch is
+ * tiny. Capping it stops a single request inserting an unbounded number of
+ * rows, and bounds the text fields — nothing here is sensitive, but the
+ * endpoint is unauthenticated and should not be a free write amplifier.
+ */
+const MAX_BATCH = 200;
+const MAX_TEXT = 500;
+
+const text = (v: unknown) => String(v ?? "").slice(0, MAX_TEXT);
+
 /** Attempts arrive in batches from the client to keep the quiz responsive. */
 export async function POST(req: Request) {
   const body = await req.json();
-  const rows: unknown[] = Array.isArray(body?.attempts) ? body.attempts : [];
+  const rows: unknown[] = Array.isArray(body?.attempts)
+    ? body.attempts.slice(0, MAX_BATCH)
+    : [];
 
   const clean: NewAttempt[] = [];
   for (const r of rows) {
@@ -17,12 +30,12 @@ export async function POST(req: Request) {
     clean.push({
       sessionId: a.sessionId,
       kind: a.kind === "numbers" ? "numbers" : "vocab",
-      scope: String(a.scope ?? "unknown"),
-      wordKey: String(a.wordKey ?? ""),
-      direction: String(a.direction ?? "n-a"),
-      prompt: String(a.prompt ?? ""),
-      expected: String(a.expected ?? ""),
-      given: String(a.given ?? ""),
+      scope: text(a.scope ?? "unknown"),
+      wordKey: text(a.wordKey),
+      direction: text(a.direction ?? "n-a"),
+      prompt: text(a.prompt),
+      expected: text(a.expected),
+      given: text(a.given),
       status: a.status as Status,
       errorKind: (a.errorKind ?? null) as NewAttempt["errorKind"],
       ms: typeof a.ms === "number" ? a.ms : null,

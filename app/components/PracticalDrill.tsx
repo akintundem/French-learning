@@ -12,6 +12,7 @@ import {
 import { gradeAny, type Grade } from "@/lib/grade";
 import { ACCENT_KEYS, applyShortcut, insertAt } from "@/lib/accents";
 import { TOPICS, type Generated, type Topic, type TopicId } from "@/lib/practical";
+import { GRAMMAR_TOPICS, type GrammarId } from "@/lib/grammar";
 import AccentBar from "./AccentBar";
 import { useTracker } from "@/lib/tracker";
 import { classifyError } from "@/lib/db/classify";
@@ -21,7 +22,20 @@ const subscribeNever = () => () => {};
 /** Generated ids are "<topic>-<detail>"; the prefix is the topic. */
 const topicOf = (id: string) => id.split("-")[0];
 
-const randomItem = (topics: Topic[]): Generated =>
+/**
+ * Numbers and grammar are the same drill over different generators, so the
+ * component takes a set id and looks the topics up here. Topic objects carry a
+ * generate() function, which cannot cross the server/client boundary — only
+ * the ids do.
+ */
+const SETS = {
+  numbers: TOPICS as { id: string; title: string; generate: Topic["generate"] }[],
+  grammar: GRAMMAR_TOPICS,
+} as const;
+
+export type DrillSet = keyof typeof SETS;
+
+const randomItem = (topics: { generate: Topic["generate"] }[]): Generated =>
   topics[Math.floor(Math.random() * topics.length)].generate(Math.random);
 
 /**
@@ -32,15 +46,18 @@ const randomItem = (topics: Topic[]): Generated =>
 export default function PracticalDrill({
   title,
   topicIds,
+  set = "numbers",
 }: {
   title: string;
   // Ids, not Topic objects: a Topic carries a generate() function, and
   // functions cannot cross the server/client boundary.
-  topicIds: TopicId[];
+  topicIds: (TopicId | GrammarId)[];
+  /** Which generator set the ids name. */
+  set?: DrillSet;
 }) {
   const topics = useMemo(
-    () => TOPICS.filter((t) => topicIds.includes(t.id)),
-    [topicIds]
+    () => SETS[set].filter((t) => (topicIds as string[]).includes(t.id)),
+    [topicIds, set]
   );
 
   // Generated content differs every render, so it must not run during the
@@ -54,9 +71,12 @@ export default function PracticalDrill({
   const shown = item;
   const [value, setValue] = useState("");
   const [pending, setPending] = useState<Grade | null>(null);
+  // Tagged "numbers" for both sets: the dashboard aggregates filter on
+  // kind = 'vocab', so a third kind would need a schema change to show up at
+  // all. The scope still says which drill it was.
   const tracker = useTracker({
     kind: "numbers",
-    scope: topicIds.length === 1 ? topicIds[0] : "all",
+    scope: topicIds.length === 1 ? topicIds[0] : set === "grammar" ? "grammar" : "all",
     direction: "n-a",
   });
   // Set when each question is shown; Date.now() must not run during render.
@@ -183,7 +203,15 @@ export default function PracticalDrill({
           Write it out in French
         </p>
 
-        <h2 className="answer-input mt-3 text-balance text-4xl leading-tight tracking-[-0.02em] tabular-nums sm:text-5xl">
+        {/* Grammar prompts are English sentences, so they read better in the
+            text face at a size that fits a full clause. */}
+        <h2
+          className={
+            set === "grammar"
+              ? "mt-3 text-balance font-serif text-3xl leading-tight tracking-[-0.015em] sm:text-4xl"
+              : "answer-input mt-3 text-balance text-4xl leading-tight tracking-[-0.02em] tabular-nums sm:text-5xl"
+          }
+        >
           {shown.prompt}
         </h2>
 
